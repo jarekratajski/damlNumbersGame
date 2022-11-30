@@ -1,0 +1,39 @@
+module Test.NumbersTest where
+
+import Daml.Script
+import Setup
+import Numbers
+
+testGame : Script ()
+testGame = do
+      parties <- setup
+      game <- submit parties.admin $ createCmd Game with
+        bank = parties.admin
+        numbers = []
+      debug $ show game
+      aliceProposal <- submit parties.alice $ createCmd Proposal with
+        player = parties.alice
+        bank = parties.admin
+        number = 7
+      game1 <- submit parties.admin $ exerciseCmd aliceProposal Accept with
+         game = game
+
+      bobProposal <- submit parties.bob $ createCmd Proposal with
+              player = parties.bob -- showcase1 - what if alice
+              bank = parties.admin
+              number = 5
+
+      game2 <- submit parties.admin $ exerciseCmd bobProposal Accept with
+               game = game1
+
+      charlieProposal <- submit parties.charlie $ createCmd Proposal with
+                player = parties.charlie
+                bank = parties.admin
+                number = 10
+
+      game3 <- submit parties.admin $ exerciseCmd charlieProposal Accept with
+                     game = game2
+
+      result <- submit parties.admin $ exerciseCmd game3 Decide
+      debug result
+      pure ()
