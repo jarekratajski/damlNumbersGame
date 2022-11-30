@@ -34,12 +34,12 @@ object NumbersGame extends App{
 
       gameStream = existingGamesStream.concat(newGameCmd)
         .take(1)
+
       game <- gameStream.run(ZSink.head)
       gameId = new Game.ContractId(game.get)
       proposalStream = daml.fetchAndListenForDamlContracts(Proposal.TEMPLATE_ID)
         .scanZIO(gameId) { (lastGameId, proposalEvent) =>
           val proposal = new Proposal.ContractId(proposalEvent.getContractId)
-
           println(s"got proposal $proposal")
           val cmd = proposal.exerciseAccept(lastGameId)
           val res = daml.sendAndLogCommand(cmd).runHead.map(x => new Game.ContractId(x.get))

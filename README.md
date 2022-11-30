@@ -2,6 +2,61 @@
 
 # numbers-game
 
+This is an example game based on daml template engine.
+
+# prerequisites
+
+daml sdk installed
+java 11
+sbt
+node/npm
+
+# building
+
+1. build daml part
+`daml build`
+2. build and start ui application
+```
+cd ui
+npm install
+npm start
+```
+3. build and start scala application
+`sbt package run`
+
+# Playing
+
+- open browser at `localhost:3000` 
+- use any desired  username (lowercase letters)
+  (user is automatically created - we do not care really for authentication in this example)
+- type a number and wait for results
+- actually at least 3 different players must *bet* in order for a single game to finish
+
+# Navigator
+
+open http://localhost:7500 to browse contracts
+
+
+# using postgres sql
+do not run `daml start`
+
+instead:
+- create empty postgres database as specified in `postgres.conf`
+- run `bash canton.sh`
+- `daml json-api --ledger-host localhost --ledger-port 5011 --http-port 7575 --allow-insecure-tokens`
+
+(ui and scala remains unchanged)
+
+# Disclaimer
+
+Code in this repository is for demonstration purposes only.
+It is neither complete nor well-designed in order to keep it simple.
+
+Important aspects such as error handling and security are ignored.
+Any suggestions for improvements are welcome.
+
+# Further readings
+# Daml 
 See [documentation] for details.
 
 [documentation]: https://docs.daml.com/getting-started/installation.html
@@ -9,67 +64,3 @@ See [documentation] for details.
 Please ask for help on [the Daml forum] if you encounter any issue!
 
 [the Daml forum]: https://discuss.daml.com
-
-## Development Quick Start
-
-You need to have [Node.js] and [Daml] installed.
-
-[Node.js]: https://nodejs.dev
-[Daml]: https://docs.daml.com
-
-First, start the Daml components:
-
-```bash
-daml start
-```
-
-This will:
-
-- Build you Daml code once.
-- Generate JavaScript code (and TypeScript definitions) for your Daml types.
-- Start a Daml sandbox gRPC server (on 6865).
-- Start a Daml HTTP JSON API server (on 7575).
-- Watch for the `r` key press (`r` + Enter on Windows); when pressed, rebuild
-  all of the Daml code, push the new DAR to the ledger, and rerun the JS/TS
-  code generation.
-
-Next, start the JS dev server:
-
-```bash
-cd ui
-npm install
-npm start
-```
-
-This starts a server on `http://localhost:3000` which:
-
-- Builds all of your TypeScript (or JavaScript) code (including type
-  definitions from the codegen).
-- Serves the result on :3000, redirecting `/v1` to the JSON API server (on
-  `localhost:7575`) so API calls are on the same origin as far as your browser
-  is concerned.
-- Watch for changes in TS/JS code (including codegen), and immediately rebuild.
-
-## Deploying to Daml Hub
-
-To build everything from scratch:
-
-```bash
-daml build
-daml codegen js .daml/dist/numbers-game-0.1.0.dar -o ui/daml.js
-cd ui
-npm install
-npm run-script build
-zip -r ../numbers-game-ui.zip build
-```
-
-Next you need to create a ledger on [Daml Hub], upload the files
-`.daml/dist/numbers-game-0.1.0.dar` (created by the `daml build` command)
-and `numbers-game-ui.zip` (created by the `zip` command based on the result
-of `npm run-script build`).
-
-[Daml Hub]: https://hub.daml.com
-
-Once both files are uploaded, you need to tell Daml Hub to deploy them. A few
-seconds later, your website should be up and running.
-# damlFunScala
