@@ -1,0 +1,21 @@
+val admin = participant1.parties.enable("admin", Some("Admin"))
+val bob = participant1.parties.enable("bob-integration-test", Some("Bob"))
+
+participant1.ledger_api.users.create(
+  id = "admin",
+  actAs = Set(admin.toLf),
+  primaryParty = Some(admin.toLf),
+  readAs = Set(admin.toLf),
+)
+
+participant1.ledger_api.users.create(
+  id = "bob-integration-test",
+  actAs = Set(bob.toLf),
+  primaryParty = Some(bob.toLf),
+  readAs = Set(bob.toLf),
+)
+
+
+participant1.domains.connect_local(mydomain)
+
+participants.local.dars.upload(".daml/dist/numbers-game-0.1.0.dar")
