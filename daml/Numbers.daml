@@ -1,8 +1,7 @@
 module Numbers where
 
-
 import DA.List
-import DA.Optional
+--import DA.Optional
 
 data Bet = Bet {player: Party, number: Int} deriving (Show, Eq)
 
@@ -16,38 +15,38 @@ secondBest list = Some $ reverse sorted  !! 1
 
 template Proposal with
     player : Party
-    bank : Party
+    dealer : Party
     number : Int
   where
      signatory player
-     observer bank
+     observer dealer
      choice Accept : (ContractId Game) with
           game: ContractId Game
-        controller bank
+        controller dealer
         do
         exercise game Append with
           proposal = this
 
 template Game with
-    bank: Party
+    dealer: Party
     numbers: [Bet]
  where
-    signatory bank
+    signatory dealer
     observer  (\x -> x.player) <$> numbers
     choice Append :(ContractId Game) with
         proposal : Proposal
-      controller bank
+      controller dealer
       do
       create Game with
         numbers = Bet {player = proposal.player, number = proposal.number} :: this.numbers
-        bank = this.bank
+        dealer = this.dealer
     choice Decide: (ContractId Result)
-      controller bank
+      controller dealer
       do
       create Result with
         winner = secondBest numbers
         all = numbers
-        dealer = bank
+        dealer = dealer
 
 
 template Result with

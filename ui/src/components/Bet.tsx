@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect} from "react";
 import {userContext} from "./App";
-import {CreateEvent} from "@daml/ledger";
 import {Game, Proposal} from "@daml.js/numbers-game/lib/Numbers";
 import {Button, Form, Segment} from "semantic-ui-react";
 
@@ -15,8 +14,8 @@ export const Bet: React.FC<{}> = props => {
     const sendBet = async (event: React.FormEvent) => {
         let parties = await ledger.listKnownParties();
         console.log(parties);
-        let admin = parties.filter(p => p.displayName == 'Admin')[0];
-        let result = await ledger.create(Proposal, {player: party, bank: admin.identifier, number: number});
+        let admin = parties.filter(p => p.displayName === 'Admin')[0];
+        let result = await ledger.create(Proposal, {player: party, dealer: admin.identifier, number: number});
         console.log(result);
         setBets(1);
     };
@@ -37,7 +36,7 @@ export const Bet: React.FC<{}> = props => {
 
 
 
-    let center = (bets == 0) ?
+    let center = (bets === 0) ?
         <Segment attached={"top"}>
             <Form.Input
                 fluid
