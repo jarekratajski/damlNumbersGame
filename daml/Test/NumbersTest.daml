@@ -1,8 +1,10 @@
 module Test.NumbersTest where
 
+import DA.Optional
 import Daml.Script
 import Setup
 import Numbers
+
 
 testGame : Script ()
 testGame = do
@@ -36,4 +38,6 @@ testGame = do
 
       result <- submit parties.admin $ exerciseCmd game3 Decide
       debug result
+      resultVal <- fromSome <$> queryContractId parties.admin result
+      assert $ resultVal.winner == Some ( Bet {player = parties.alice, number = 7})
       pure ()

@@ -32,7 +32,7 @@ export const NumbersGame: React.FC<Props> = ({onLogout, getPublicParty}) => {
             </Grid.Row>
             <Grid.Row>
                 <Grid.Column>
-                    Give a number (integer). You play with multiple other players. Whoever gives second highest number  - wins.
+                    Give a number (integer). You play with multiple other players. Whoever gives the second highest number  - wins.
                 </Grid.Column>    
             </Grid.Row>
         </Grid>
