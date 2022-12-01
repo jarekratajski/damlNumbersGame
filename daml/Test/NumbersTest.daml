@@ -19,7 +19,7 @@ testGame = do
          game = game
 
       bobProposal <- submit parties.bob $ createCmd Proposal with
-              player = parties.alice  -- showcase1 - what if alice
+              player = parties.bob -- showcase1 - what if alice
               dealer = parties.admin
               number = 5
 

@@ -66,24 +66,18 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
       const ledger = new Ledger({ token: token });
       let primaryParty = null;
       try {
+
           primaryParty = await auth.userManagement
               .primaryParty(username, ledger)
               .catch(error => {
-                  const errorMsg =
-                      error instanceof Error ? error.toString() : JSON.stringify(error);
-                  //alert(`Failed to login as '${username}':\n${errorMsg}`);
+                  
                   throw error;
               });
       } catch (err) {
+          //we cheat here a little - if the user is not found we log in as admin and create it
+          //(demo simplification)
           const adminLedger = new Ledger({ token: adminToken });
-          const adminParty: string = await auth.userManagement
-              .primaryParty('admin', adminLedger)
-              .catch(error => {
-                  const errorMsg =
-                      error instanceof Error ? error.toString() : JSON.stringify(error);
-                  alert(`Admin failed to login as 'admin':\n${errorMsg}`);
-                  throw error;
-              });
+          
           const party = await adminLedger.allocateParty({
               identifierHint: username,
               displayName: username
