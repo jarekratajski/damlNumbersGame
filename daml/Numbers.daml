@@ -1,7 +1,6 @@
 module Numbers where
 
 import DA.List
---import DA.Optional
 
 data Bet = Bet {player: Party, number: Int} deriving (Show, Eq)
 
@@ -10,8 +9,10 @@ secondBest [] = None
 secondBest [bet] = Some bet
 secondBest list = Some $ reverse sorted  !! 1
     where
-      sorted = sortBy (\b1 b2 -> if b1.number > b2.number then GT else if b1.number < b2.number then LT else EQ) list
+      sorted = sort list
 
+instance Ord Bet where 
+  a `compare` b = a.number `compare` b.number
 
 template Proposal with
     player : Party

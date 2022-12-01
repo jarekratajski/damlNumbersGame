@@ -47,7 +47,7 @@ object NumbersGame extends App{
         }.map(id => GameState(Some(id), 1,  0))
 
         timeStream = {
-          ZStream.fromSchedule(Schedule.spaced(1.second) >>> Schedule.recurs(10_000))
+          ZStream.fromSchedule(Schedule.spaced(1.second) >>> Schedule.recurs(100_000))
           }.map(cnt => GameState(None, 0, cnt))
 
         combined = timeStream.merge(proposalStream)
