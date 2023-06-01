@@ -6,22 +6,24 @@ This is an example game based on daml template engine.
 
 # prerequisites
 
-daml sdk installed
-java 11
-sbt
-node/npm
+- daml sdk installed
+- java 11
+- sbt
+- node/npm
 
 # building
 
 1. build daml part
 `daml build`
-2. build and start ui application
+2. start daml
+`daml start`
+3. (other console) build and start ui application
 ```
 cd ui
 npm install
 npm start
 ```
-3. build and start scala application
+4. (other console) build and start scala application
 `sbt package run`
 
 # Playing
