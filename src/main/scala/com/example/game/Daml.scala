@@ -3,6 +3,8 @@ package com.example.game
 import com.daml.ledger.javaapi.data._
 import com.daml.ledger.rxjava.DamlLedgerClient
 import io.grpc.Status
+import numbers.Result
+import zio.ZIO
 import zio.interop.reactivestreams.Adapters
 import zio.stream.ZStream
 
@@ -13,6 +15,15 @@ import scala.jdk.OptionConverters.RichOptional
 class Daml(val connection:DamlLedgerClient, party:String) {
   val DAML_APP_ID = "NumbersGame"
 
+  def fetchDamlContract(templateId: Identifier, contract: ContractId): ZIO[Any, Status, Option[CreatedEvent]] = {
+    fetchDamlContracts(templateId).flatMap(e => ZStream.fromIterable(e.event))
+      .filter {e =>
+        val res = e.getContractId == contract.getValue
+        println(s"got contract ${e.getContractId} and it is $res for $contract")
+        res
+      }
+      .runHead
+  }
   def fetchDamlContracts(
                           templateId: Identifier
                         ): ZStream[Any, Status, ContractEvents] = {

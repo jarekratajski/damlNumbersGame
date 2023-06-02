@@ -1,6 +1,6 @@
 package com.example.game
 
-import com.daml.ledger.javaapi.data.GetUserRequest
+import com.daml.ledger.javaapi.data.{ContractId, GetUserRequest}
 import com.daml.ledger.rxjava.DamlLedgerClient
 import io.grpc.Status
 import numbers.{Game, Proposal, Result}
@@ -69,10 +69,18 @@ object NumbersGame extends App{
       endRes <- last.foreach { g1 =>
         val game = g1.gameId.get
         val cmd = game.exerciseDecide()
-        val res = daml.sendAndLogCommand(cmd).runHead.map(x => new Result.ContractId(x.get))
         println("!!got result")
-        res
+        val res: ZIO[Any, Throwable, Option[Result]] = for {
+          resId <- daml.sendAndLogCommand(cmd).runHead.map {x =>
+            println(s"got send and Log:  $x")
+            new Result.ContractId(x.get)
+          }
+          resContract <- daml.fetchDamlContract(Result.TEMPLATE_ID, new ContractId(resId.contractId)).mapError( e => new IllegalStateException(e.toString))
+        } yield resContract.map (x => Result.fromValue(x.getArguments))
+
+        res.map(x => println(s"result is $x"))
       }
+
     } yield (endRes)
   }
   def userConnection(userId: String) = ZIO
