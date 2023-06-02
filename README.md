@@ -9,7 +9,7 @@ This is an example game based on daml template engine.
 - daml sdk installed
 - java 11
 - sbt
-- node/npm
+- node/npm (tested on node v15.8.0)
 
 # building
 
