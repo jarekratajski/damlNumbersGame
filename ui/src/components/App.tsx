@@ -62,15 +62,7 @@ const App: React.FC = () => {
           token={credentials.token}
           party={credentials.party}
           user={credentials.user}>
-          {/*<MainScreen*/}
-          {/*  getPublicParty={credentials.getPublicParty}*/}
-          {/*  onLogout={() => {*/}
-          {/*    if (authConfig.provider === "daml-hub") {*/}
-          {/*      damlHubLogout();*/}
-          {/*    }*/}
-          {/*    setCredentials(undefined);*/}
-          {/*  }}*/}
-          {/*/>*/}
+
             <NumbersGame
                 getPublicParty={credentials.getPublicParty}
                 onLogout={() => {

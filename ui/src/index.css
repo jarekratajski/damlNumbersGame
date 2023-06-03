@@ -14,3 +14,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.notifications >  .label {
+    visibility: hidden;
+}
+
+.notifications >  .label.active {
+    visibility: visible;
+}

@@ -27,7 +27,7 @@ export const Bet: React.FC<{}> = props => {
         console.log(myGames);
         console.log("end debug");
         setBets(myProposals.length + myGames.length);
-        setTimeout(()=>setCnt(cnt+1), 1000);
+        setTimeout(()=>setCnt(cnt+1), 10000);
     }, [cnt]);
 
     useEffect(() => {
