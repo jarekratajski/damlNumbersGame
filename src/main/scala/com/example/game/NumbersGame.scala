@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters.SeqHasAsJava
 import scala.jdk.OptionConverters.RichOptional
 
 
-object NumbersGame extends App{
+object NumbersGame extends App {
 
   val connection = {
     val cx = DamlLedgerClient.newBuilder("localhost", 6865).build()
@@ -21,6 +21,7 @@ object NumbersGame extends App{
   }
 
   val runtime = zio.Runtime.default
+
   def mainLoop() = {
 
     for {
@@ -44,43 +45,42 @@ object NumbersGame extends App{
           val cmd = proposal.exerciseAccept(lastGameId)
           val res = daml.sendAndLogCommand(cmd).runHead.map(x => new Game.ContractId(x.get))
           res.mapError(e => Status.UNKNOWN)
-        }.map(id => GameState(Some(id), 1,  0))
+        }.map(id => GameState(Some(id), 1, 0))
 
-        timeStream = {
-          ZStream.fromSchedule(Schedule.spaced(1.second) >>> Schedule.recurs(100_000))
-          }.map(cnt => GameState(None, 0, cnt))
+      timeStream = {
+        ZStream.fromSchedule(Schedule.spaced(1.second) >>> Schedule.recurs(100_000))
+      }.map(cnt => GameState(None, 0, cnt))
 
-        combined = timeStream.merge(proposalStream)
-        changesDetect = combined.scan(GameState(None,0, 0)) {
-          (g, nextElem) =>
-            nextElem.gameId match {
+      combined = timeStream.merge(proposalStream)
+      changesDetect = combined.scan(GameState(None, 0, 0)) {
+        (g, nextElem) =>
+          nextElem.gameId match {
             case Some(x) =>
               if (nextElem.gameId == g.gameId) {
                 GameState(nextElem.gameId, g.proposalCount + nextElem.proposalCount, g.time + 1)
               } else {
-                GameState(nextElem.gameId,g.proposalCount + nextElem.proposalCount, 0)
+                GameState(nextElem.gameId, g.proposalCount + nextElem.proposalCount, 0)
               }
             case None =>
               GameState(g.gameId, g.proposalCount + nextElem.proposalCount, g.time + 1)
           }
       }
-      tillStale = changesDetect.tap(x => ZIO.succeed(println(s"have $x"))).takeUntil((x) => x.proposalCount>3 && x.time > 30)
-      last = tillStale.takeRight(1)
-      endRes <- last.foreach { g1 =>
-        val game = g1.gameId.get
+      streamTillStale = changesDetect.tap(x => ZIO.succeed(println(s"have $x"))).takeUntil((x) => x.proposalCount > 3 && x.time > 30)
+      last = streamTillStale.takeRight(1)
+      endRes <- last.foreach { gameState =>
+        val game = gameState.gameId.get
         val cmd = game.exerciseDecide()
         val res: ZIO[Any, Throwable, Option[Result]] = for {
-          resId <- daml.sendAndLogCommand(cmd).runHead.map (contractId  =>
-            new Result.ContractId(contractId.get)
+          resId <- daml.sendAndLogCommand(cmd).runHead.map(contract =>
+            new Result.ContractId(contract.get)
           )
-          resContract <- daml.fetchDamlContract(Result.TEMPLATE_ID, new ContractId(resId.contractId)).mapError( e => new IllegalStateException(e.toString))
-        } yield resContract.map (createEvent => Result.fromValue(createEvent.getArguments))
-
+          resContract <- daml.fetchDamlContract(Result.TEMPLATE_ID, new ContractId(resId.contractId)).mapError(e => new IllegalStateException(e.toString))
+        } yield resContract.map(createEvent => Result.fromValue(createEvent.getArguments))
         res.map(gameResult => println(s"the game result is $gameResult"))
       }
-
     } yield (endRes)
   }
+
   def userConnection(userId: String) = ZIO
     .attemptBlockingIO {
       val userManagementClient = connection.getUserManagementClient()
@@ -89,18 +89,18 @@ object NumbersGame extends App{
       val stream = Adapters
         .publisherToStream(getUserResponse.toFlowable(), 2)
         .map(_.getUser().getPrimaryParty().toScala)
-      stream.runHead.map { x =>
-        x.flatten
+      stream.runHead.map {
+        _.flatten
       }
     }.flatMap(identity)
 
-  val gameLoop = ZIO.loop(0)((_)=>true,_+1)((_)=>mainLoop())
+  val gameLoop = ZIO.loop(0)((_) => true, _ + 1)((_) => mainLoop())
 
   Unsafe.unsafe { implicit unsafe =>
     runtime.unsafe.run(gameLoop)
   }
 }
 
-case class GameState(gameId: Option[Game.ContractId], proposalCount:Int, time:Long) {
+case class GameState(gameId: Option[Game.ContractId], proposalCount: Int, time: Long) {
 
 }

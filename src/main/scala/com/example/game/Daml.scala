@@ -17,11 +17,7 @@ class Daml(val connection:DamlLedgerClient, party:String) {
 
   def fetchDamlContract(templateId: Identifier, contract: ContractId): ZIO[Any, Status, Option[CreatedEvent]] = {
     fetchDamlContracts(templateId).flatMap(e => ZStream.fromIterable(e.event))
-      .filter {e =>
-        val res = e.getContractId == contract.getValue
-        println(s"got contract ${e.getContractId} and it is $res for $contract")
-        res
-      }
+      .filter (_.getContractId == contract.getValue)
       .runHead
   }
   def fetchDamlContracts(
@@ -104,6 +100,7 @@ class Daml(val connection:DamlLedgerClient, party:String) {
   }
 
   // send an exercise command and asynchronously wait for / log success/failure
+  //returns a stream of contract ids
   def sendAndLogCommand(
                          command: Command,
 
@@ -122,9 +119,9 @@ class Daml(val connection:DamlLedgerClient, party:String) {
         2,
       ).map { transaction =>
       val events = transaction.getEvents.asScala
-      val res = events.filter(e => e.isInstanceOf[CreatedEvent])
+      val res = events.filter(_.isInstanceOf[CreatedEvent])
         .map(_.asInstanceOf[CreatedEvent])
-        .map(e => e.getContractId)
+        .map(_.getContractId)
         .head
       res
     }.take(1)
