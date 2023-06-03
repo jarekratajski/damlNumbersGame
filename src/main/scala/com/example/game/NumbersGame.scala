@@ -69,16 +69,14 @@ object NumbersGame extends App{
       endRes <- last.foreach { g1 =>
         val game = g1.gameId.get
         val cmd = game.exerciseDecide()
-        println("!!got result")
         val res: ZIO[Any, Throwable, Option[Result]] = for {
-          resId <- daml.sendAndLogCommand(cmd).runHead.map {x =>
-            println(s"got send and Log:  $x")
-            new Result.ContractId(x.get)
-          }
+          resId <- daml.sendAndLogCommand(cmd).runHead.map (contractId  =>
+            new Result.ContractId(contractId.get)
+          )
           resContract <- daml.fetchDamlContract(Result.TEMPLATE_ID, new ContractId(resId.contractId)).mapError( e => new IllegalStateException(e.toString))
-        } yield resContract.map (x => Result.fromValue(x.getArguments))
+        } yield resContract.map (createEvent => Result.fromValue(createEvent.getArguments))
 
-        res.map(x => println(s"result is $x"))
+        res.map(gameResult => println(s"the game result is $gameResult"))
       }
 
     } yield (endRes)
