@@ -45,7 +45,7 @@ do not run `daml start`
 instead:
 - create empty postgres database as specified in `postgres.conf`
 - run `bash canton.sh`
-- `daml json-api --ledger-host localhost --ledger-port 5011 --http-port 7575 --allow-insecure-tokens`
+- `daml json-api --ledger-host localhost --ledger-port 6865 --http-port 7575 --allow-insecure-tokens`
 
 (ui and scala remains unchanged)
 
