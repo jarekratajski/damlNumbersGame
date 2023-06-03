@@ -45,32 +45,28 @@ class Daml(val connection:DamlLedgerClient, party:String) {
   }
 
 
-  private def listenForNewDamlContracts(
-                                         offset: String,
-                                         templateId: Identifier,
-                                       ) = {
+  private def listenForNewDamlContracts(offset: String, templateId: Identifier) = {
+
     val transactionsClient = connection.getTransactionsClient
-    Adapters
-      .publisherToStream(
-        transactionsClient
-          .getTransactions(
-            new LedgerOffset.Absolute(offset),
-            makeDamlTransactionFilter(templateId),
-            false,
-          ),
-        2,
-      )
-      .mapError(mapAndLogError(_))
+
+    val absoluteOffset = new LedgerOffset.Absolute(offset)
+    val damlTransactionFilter = makeDamlTransactionFilter(templateId)
+
+    val publisherToStreamAdaptor = Adapters.publisherToStream(
+      transactionsClient.getTransactions(absoluteOffset, damlTransactionFilter, false), 2)
+
+    publisherToStreamAdaptor
+      .mapError(mapAndLogError)
       .map { tx =>
-        val evs = tx
+        val createdEvents = tx
           .getEvents()
           .asScala
-          .filter(_.isInstanceOf[CreatedEvent])
-          .map(_.asInstanceOf[CreatedEvent])
-          .toSeq
-        ContractEvents(evs, Some(tx.getOffset()))
+          .collect { case ce: CreatedEvent => ce }
+
+        ContractEvents(createdEvents.toSeq, Some(tx.getOffset()))
       }
   }
+
 
   def fetchAndListenForDamlContracts(
                                       templateId: Identifier
