@@ -20,28 +20,27 @@ class Daml(val connection:DamlLedgerClient, party:String) {
       .filter (_.getContractId == contract.getValue)
       .runHead
   }
-  def fetchDamlContracts(
-                          templateId: Identifier
-                        ): ZStream[Any, Status, ContractEvents] = {
-    val activeContractsClient =
-      connection.getActiveContractSetClient
 
-    val activeContractsResponses =
-      activeContractsClient
-        .getActiveContracts(
-          makeDamlTransactionFilter(templateId),
-          false,
-        )
-        .map(resp => (resp.getCreatedEvents.asScala.toSeq, resp.getOffset))
-        .map { case (events, offset) =>
-          ContractEvents(events, offset.toScala)
-        }
-        .replay()
+  def fetchDamlContracts(templateId: Identifier): ZStream[Any, Status, ContractEvents] = {
+    val activeContractsClient = connection.getActiveContractSetClient
+    val damlTransactionFilter = makeDamlTransactionFilter(templateId)
+
+    val activeContractsResponses = activeContractsClient
+      .getActiveContracts(damlTransactionFilter, false)
+      .map { resp =>
+        val createdEvents = resp.getCreatedEvents.asScala.toSeq
+        val offset = resp.getOffset
+
+        ContractEvents(createdEvents, offset.toScala)
+      }
+      .replay()
+
     activeContractsResponses.connect()
 
     val activeStream: ZStream[Any, Throwable, ContractEvents] =
       Adapters.publisherToStream(activeContractsResponses, 2)
-    activeStream.mapError(mapAndLogError(_))
+
+    activeStream.mapError(mapAndLogError)
   }
 
 
