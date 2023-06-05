@@ -61,7 +61,8 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
 
     const handleLogin = async (event: React.FormEvent) => {
       event.preventDefault();
-      const token = auth.makeToken(username);
+      const lowerCaseName = username.toLowerCase();
+      const token = auth.makeToken(lowerCaseName);
       const adminToken = auth.makeToken('admin');
       const ledger = new Ledger({ token: token });
       let primaryParty = null;
@@ -70,31 +71,31 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
           primaryParty = await auth.userManagement
               .primaryParty(username, ledger)
               .catch(error => {
-                  
                   throw error;
               });
       } catch (err) {
+          console.log("auto registering user")
           //we cheat here a little - if the user is not found we log in as admin and create it
           //(demo simplification)
           const adminLedger = new Ledger({ token: adminToken });
-          
+
           const party = await adminLedger.allocateParty({
-              identifierHint: username,
-              displayName: username
+              identifierHint: lowerCaseName,
+              displayName: lowerCaseName
           }).catch(error => {
               const errorMsg =
                   error instanceof Error ? error.toString() : JSON.stringify(error);
-              alert(`Failed to allocate party '${username}':\n${errorMsg}`);
+              alert(`Failed to allocate party '${lowerCaseName}':\n${errorMsg}`);
               throw error;
           });
-          await adminLedger.createUser(username, [UserRightHelper.canActAs(party.identifier),UserRightHelper.canReadAs(party.identifier) ], party.identifier);
+          await adminLedger.createUser(lowerCaseName, [UserRightHelper.canActAs(party.identifier),UserRightHelper.canReadAs(party.identifier) ], party.identifier);
 
           primaryParty = await auth.userManagement
-              .primaryParty(username, ledger)
+              .primaryParty(lowerCaseName, ledger)
               .catch(error => {
                   const errorMsg =
                       error instanceof Error ? error.toString() : JSON.stringify(error);
-                  alert(`Failed to login as '${username}':\n${errorMsg}`);
+                  alert(`Failed to login as '${lowerCaseName}':\n${errorMsg}`);
                   throw error;
               });
       }
@@ -105,7 +106,7 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
         const setup = () => {
           const fn = async () => {
             const publicParty = await auth.userManagement
-              .publicParty(username, ledger)
+              .publicParty(username.toLowerCase(), ledger)
               .catch(error => {
                 const errorMsg =
                   error instanceof Error
@@ -124,9 +125,9 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
         return { usePublicParty: () => publicParty, setup: setup };
       };
       await login({
-        user: { userId: username, primaryParty: primaryParty },
+        user: { userId: username.toLowerCase(), primaryParty: primaryParty },
         party: primaryParty,
-        token: auth.makeToken(username),
+        token: auth.makeToken(username.toLowerCase()),
         getPublicParty: useGetPublicParty,
       });
     };
